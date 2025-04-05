@@ -1,6 +1,9 @@
 from flask import Flask, jsonify
 import requests
 from bs4 import BeautifulSoup
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 app = Flask(__name__)
 
@@ -12,11 +15,11 @@ def get_prices():
     }
 
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10, verify=False)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.content, "html.parser")
-        rows = soup.select("table td")  # might need tuning
+        rows = soup.select("table td")
 
         aluminum = None
         tin = None
@@ -34,7 +37,6 @@ def get_prices():
         })
 
     except Exception as e:
-        # Log to the console (viewable in Render logs)
         print(f"Error scraping Kitco: {e}")
         return jsonify({"error": "Scraping failed", "details": str(e)}), 500
 
